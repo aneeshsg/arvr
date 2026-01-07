@@ -2,13 +2,17 @@ using UnityEngine;
 
 public class Raycast2DSimple : MonoBehaviour
 {
-    public float rayDistance = 5f; // how far the ray checks
-    private Collider2D lastHit = null; // remember the last collider hit
+    public float rayDistance = 5f;
+
+    private Collider2D lastHit = null;
+    private SpriteRenderer lastRenderer = null;
+    private Color lastOriginalColor;
 
     void Update()
     {
         Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mouseWorld.z = 0f;
+
         Vector2 origin = transform.position;
         Vector2 direction = (mouseWorld - transform.position).normalized;
 
@@ -16,23 +20,41 @@ public class Raycast2DSimple : MonoBehaviour
 
         if (hit.collider != null)
         {
-            // Only log if the hit object changed
             if (hit.collider != lastHit)
             {
-                Debug.Log("Hit: " + hit.collider.name);
+                // Reset previous hit color
+                ResetLastHitColor();
+
+                // Store new hit
                 lastHit = hit.collider;
+                lastRenderer = hit.collider.GetComponent<SpriteRenderer>();
+
+                if (lastRenderer != null)
+                {
+                    lastOriginalColor = lastRenderer.color;
+                    lastRenderer.color = Color.red; // change color on hit
+                }
+
+                Debug.Log("Hit: " + hit.collider.name);
             }
         }
         else
         {
-            // Clear log when no object is hit
-            if (lastHit != null)
-            {
-                Debug.Log("No Hit");
-                lastHit = null;
-            }
+            // No hit → reset color
+            ResetLastHitColor();
         }
 
         Debug.DrawRay(origin, direction * rayDistance, Color.red);
+    }
+
+    void ResetLastHitColor()
+    {
+        if (lastRenderer != null)
+        {
+            lastRenderer.color = lastOriginalColor;
+        }
+
+        lastHit = null;
+        lastRenderer = null;
     }
 }
